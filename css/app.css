@@ -1,0 +1,19 @@
+/* 
+App specific styles go here
+*/
+
+html {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: #fff;
+  font-family: 'SF Text', 'Helvetica', serif;
+  color: #2c3e50;
+}
+
+a {
+  color: #337ab7;
+  text-decoration: none;
+}

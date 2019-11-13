@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+  <link rel="icon"
+        type="image/x-icon"
+        href="../img/favicon.ico">
+  <meta charset="utf-8">
+  <title>SAML Login Prototype</title>
+
+  <style rel="stylesheet">
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 999;
+      width: 100%;
+      height: 88px;
+    }
+
+    .header-row1 {
+      background-color: #6e7070;
+      color: #f4f4f4;
+      height: 30px;
+      padding-top: 4px;
+      text-align: right;
+      width: 100%;
+    }
+
+    .header-row1 .left-container {
+      float: left;
+      width: 100px;
+      text-align: left;
+    }
+
+    .header-row1 .center-container {
+      display: inline-block;
+      width: 150px;
+      text-align: right;
+    }
+
+    .header-row1 .right-container {
+      float: right;
+      text-align: right;
+      width: 90px;
+      margin-right: 5px;
+    }
+
+    #logo-notification-row {
+      background-color: #FFF;
+      text-align: right;
+      width: 99%;
+    }
+
+    #logo-notification-row .logo-img-container {
+      padding-top: 6px;
+      padding-left: 5px;
+      float: left;
+      width: 300px;
+      text-align: left;
+    }
+
+    .content-body {
+      margin-top: 125px;
+      margin-left: 15px;
+    }
+
+
+    .loading-dots {
+      text-align: center;
+      z-index: 5;
+    }
+
+    .loading-dots .dot {
+      display: inline;
+      margin-left: 0.2em;
+      margin-right: 0.2em;
+      position: relative;
+      top: -1em;
+      font-size: 3.5em;
+      opacity: 0;
+      -webkit-animation: showHideDot 2.5s ease-in-out infinite;
+      animation: showHideDot 2.5s ease-in-out infinite;
+    }
+
+    .loading-dots .dot.one {
+      -webkit-animation-delay: 0.2s;
+      animation-delay: 0.2s;
+    }
+
+    .loading-dots .dot.two {
+      -webkit-animation-delay: 0.4s;
+      animation-delay: 0.4s;
+    }
+
+    .loading-dots .dot.three {
+      -webkit-animation-delay: 0.6s;
+      animation-delay: 0.6s;
+    }
+
+    .center-block {
+      margin: 0 auto;
+      position: absolute;
+      top: 40%;
+      width: 90%;
+      -ms-transform: translateY(-50%);
+      transform: translateY(-50%);
+      text-align: center;
+    }
+
+    .error-block {
+      font-size: 1.2em;
+      color: red;
+    }
+
+    @-webkit-keyframes showHideDot {
+      0% {
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      60% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes showHideDot {
+      0% {
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      60% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+  </style>
+
+  <script src="../lib/jquery/jquery-3.1.1.min.js"></script>
+
+<body>
+
+<header>
+  <div class="header-row1">
+    <div class="left-container">&nbsp;</div>
+    <div class="center-container">&nbsp;</div>
+    <div class="right-container">&nbsp;</div>
+  </div>
+
+  <div id="logo-notification-row">
+    <div class="logo-img-container">
+      <img src="" />
+    </div>
+  </div>
+</header>
+
+<div class="content-body">
+  <div class="loading-dots center-block" id="loading-dialog">
+    <h3 style="opacity: .75; padding-bottom:10px;">Stand by, securing login...</h3>
+    <h1 class="dot one">.</h1>
+    <h1 class="dot two">.</h1>
+    <h1 class="dot three">.</h1>
+  </div>
+
+  <div class="error-block center-block" id="error-dialog" style="display:none;">
+    Sorry, there has been an error completing the login request. Please ensure that you are using the proper
+    credentials.
+  </div>
+
+
+  <!-- SAML Login Form -->
+  <div hidden>
+    <form name="ssoLoginForm" action="/services/api/Saml/SSOFromSPToIdp" method="POST">
+      <input type="text" id="linkInput" name="Data" value="" readonly/>
+      <button type="submit" id="loginButton">Login SAML</button>
+    </form>
+  </div>
+
+</div>
+
+
+<script>
+  var url = window.location.href;     // Returns full URL (https://example.com/path/example.html) THIS IS USED FOR SAML
+  var authHeader = '';
+
+  var getUrlParameter = function (sParam) {
+    var sPageURL = window.location.search.substring(1),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+      sParameterName = sURLVariables[i].split('=');
+
+      if (sParameterName[0] === sParam) {
+        return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+      }
+    }
+  };
+
+
+  var getUserToken = function () {
+    $.post('/services/api/login', '', function (data, textStatus) {
+      authHeader = 'Bearer ' + data.access_token;
+      localStorage.graniteApp_token = authHeader;
+      returnToClient();
+      console.log(textStatus);
+    }, "json")
+        .fail(function (response) {
+          console.log('Login Error: ' + response.responseText);
+          $("#error-dialog").show();
+          $("#loading-dialog").hide();
+        });
+  };
+
+  var returnToClient = function () {
+    var returnPath = localStorage.graniteApp_lastPath ? localStorage.graniteApp_lastPath : '/app/#/labs';
+    window.location.replace(returnPath);
+  };
+
+  var getIsSamlFlag = function () {
+    $.getJSON("/services/api/users/IsUsingSAMLAuth",
+        function (data) {
+          var isUsingSamlAuth = data.Data;
+          if (isUsingSamlAuth) {
+            $("#linkInput").val(url + '?saml_return=true');
+            $("#loginButton").click();
+          } else {
+            getUserToken();
+          }
+        });
+  };
+
+
+  $(document).ready(function () {
+    var samlReturnFlag = getUrlParameter('saml_return');
+    if (samlReturnFlag) {
+      getUserToken();
+    } else {
+      getIsSamlFlag();
+    }
+
+  });
+
+
+</script>
+
+</body>
+</html>
