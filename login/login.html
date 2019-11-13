@@ -144,7 +144,7 @@
     }
   </style>
 
-  <script src="../lib/jquery/jquery-3.1.1.min.js"></script>
+  <script src="../lib/jquery/3.4.1/jquery-3.4.1.min.js"></script>
 
 <body>
 
@@ -178,7 +178,7 @@
 
   <!-- SAML Login Form -->
   <div hidden>
-    <form name="ssoLoginForm" action="/services/api/Saml/SSOFromSPToIdp" method="POST">
+    <form name="ssoLoginForm" action="/SsoLoginFormPostUrl" method="POST">
       <input type="text" id="linkInput" name="Data" value="" readonly/>
       <button type="submit" id="loginButton">Login SAML</button>
     </form>
@@ -208,9 +208,9 @@
 
 
   var getUserToken = function () {
-    $.post('/services/api/login', '', function (data, textStatus) {
+    $.post('/services/getAppToken', '', function (data, textStatus) {
       authHeader = 'Bearer ' + data.access_token;
-      localStorage.graniteApp_token = authHeader;
+      localStorage.webApp_token = authHeader;
       returnToClient();
       console.log(textStatus);
     }, "json")
@@ -222,12 +222,12 @@
   };
 
   var returnToClient = function () {
-    var returnPath = localStorage.graniteApp_lastPath ? localStorage.graniteApp_lastPath : '/app/#/labs';
+    var returnPath = localStorage.webApp_lastPath ? localStorage.webApp_lastPath : '/appLandingPage';
     window.location.replace(returnPath);
   };
 
   var getIsSamlFlag = function () {
-    $.getJSON("/services/api/users/IsUsingSAMLAuth",
+    $.getJSON("/services/GetCheckOnTypeOfSamlToUse",
         function (data) {
           var isUsingSamlAuth = data.Data;
           if (isUsingSamlAuth) {
